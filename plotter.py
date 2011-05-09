@@ -13,8 +13,8 @@ import time
 import numpy as np
 import matplotlib
 from threading import Thread
-#matplotlib.use('WXAgg')
-matplotlib.use('macosx')
+matplotlib.use('WXAgg')
+#matplotlib.use('macosx')
 matplotlib.rcParams['toolbar'] = 'None'
 matplotlib.rcParams['figure.facecolor'] = 'black'
 matplotlib.rcParams['figure.edgecolor'] = 'black'
