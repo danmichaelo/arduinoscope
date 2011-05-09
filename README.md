@@ -1,5 +1,6 @@
+## Arduinoscope ##
 
-![Screenshot](screenshot.png)
+![Screenshot](https://github.com/danmichaelo/arduinoscope/raw/master/screenshot.png)
 
 ## Todo ##
 
