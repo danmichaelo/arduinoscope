@@ -12,6 +12,7 @@ See also:
 import time
 import numpy as np
 import matplotlib
+from math import floor
 from threading import Thread
 matplotlib.use('WXAgg')
 #matplotlib.use('macosx')
@@ -37,25 +38,31 @@ ax1 = fig.add_axes([ 0.10, 0.68, 0.88, 0.29 ])
 ax1.set_xticklabels([])
 ax2.set_xticklabels([])
 
+points = 600.       # number of data points
+x_interval = 300.   # number of seconds displayed
+
+pointlength = x_interval/points # length of each point in seconds
+
 #ax = fig.add_subplot(111)
 ax1.grid(True)
 ax2.grid(True)
 ax3.grid(True)
-ax3.set_xlabel("Time (Seconds)")
+ax3.set_xlabel("Time")
 ax1.set_ylabel(r'Voltage $V$ [V]')
 ax2.set_ylabel(r'Current $I$ [mA]')
 ax3.set_ylabel(r'Power $P$ [mW]')
-ax1.axis([0,750, 0, 5])
-ax2.axis([0,750, 0, 100])
-ax3.axis([0,750, 0, 100])
+ax1.axis([0,points, 0, 5])
+ax2.axis([0,points, 0, 100])
+ax3.axis([0,points, 0, 100])
 
-t = np.arange(0,750,1)
-voltage = np.zeros(750)
-current = np.zeros(750)
-power = np.zeros(750)
-line_v, = ax1.plot(t, voltage)
-line_i, = ax2.plot(t, current)
-line_p, = ax3.plot(t, power)
+x = np.arange(0, points, 1)
+datetime = np.zeros(points)
+voltage = np.zeros(points)
+current = np.zeros(points)
+power = np.zeros(points)
+line_v, = ax1.plot(x, voltage)
+line_i, = ax2.plot(x, current)
+line_p, = ax3.plot(x, power)
 
 pad = 1.0
 current_pos = 0
@@ -67,7 +74,6 @@ def update(*args):
     global current_pos, pad, voltage, current, power, pltline, fig, ax1
     # Open the data file and get any new data points since
     # the last time we read from this file
-    print "UPDATE"
     data = open("serial.log", "r")
     data.seek(current_pos)
     new_data = data.read().split("\n")
@@ -76,21 +82,49 @@ def update(*args):
     data.close()
    
     # If we got new data then append it to the list of
-    # temperatures and trim to 750 points
+    # temperatures and trim to <points> points
     for line in new_data:
         line = line.split()
-        if len(line) == 3:
-            voltage[0:-1] = voltage[1:]
-            voltage[-1] = float(line[0])
-            current[0:-1] = current[1:]
-            current[-1] = float(line[1])
-            power[0:-1] = power[1:]
-            power[-1] = float(line[2])
+        if len(line) == 4:
+            if datetime[-1] == 0.:
+                dt = pointlength
+            else:
+                dt = float(line[0]) - datetime[-1]
+            npoints = int(floor(dt/pointlength))
+            #print "dt: %.3f. pointlength: %.1f. Filling %d points" % (dt, pointlength, npoints)
+            if npoints < points:
+                for i in range(npoints):
+                    datetime[0:-1] = datetime[1:]
+                    datetime[-1] = float(line[0])
+                    voltage[0:-1] = voltage[1:]
+                    voltage[-1] = float(line[1])
+                    current[0:-1] = current[1:]
+                    current[-1] = float(line[2])
+                    power[0:-1] = power[1:]
+                    power[-1] = float(line[3])
 
     line_v.set_ydata(voltage)
     line_i.set_ydata(current)
     line_p.set_ydata(power)
-   
+    
+    if (datetime[0] > 0.):
+        trange = datetime[-1] - datetime[0]
+        tscale = 1./trange*points   # scaling factor from seconds to pixels
+        tick_dist = 120  # tick every tick_dist seconds
+        t0 = time.localtime(datetime[0])
+        sec0 = t0.tm_min*60 + t0.tm_sec
+        rest0 = sec0%tick_dist
+        first_tick = (tick_dist - rest0) * tscale
+
+        xt = np.arange(first_tick, points, tick_dist * tscale)
+        xl = [time.strftime("%H:%M:%S",time.localtime(datetime[first_tick]+i*tick_dist)) for i in range(len(xt))]
+
+        ax3.set_xticks(xt)
+        ax3.set_xticklabels(xl)
+
+    # Check interval
+    #print (datetime[-1] - datetime[0])
+
     # Get the minimum and maximum temperatures these are
     # used for annotations and scaling the plot of data
     min_v = min(voltage)
@@ -151,7 +185,7 @@ if matplotlib.get_backend() == 'WXAgg':
     id = wx.NewId()
     actor = fig.canvas.manager.frame
     timer = wx.Timer(actor, id=id)
-    timer.Start(1000)
+    timer.Start(500)
     #wx.EVT_IDLE(wx.GetApp(), update)
     wx.EVT_TIMER(actor, id, update)
 

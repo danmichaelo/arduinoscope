@@ -35,7 +35,7 @@ if not ser:
     sys.exit()
 
 # Write to log every <delay> seconds
-delay = 1.0
+delay = 0.5
 
 start = time.time()
 while True:
@@ -51,7 +51,7 @@ while True:
             voltage = s1/1024.*5.
 
             # The resistance over which the second reading is done (in ohm):
-            resistance = 100.
+            resistance = 180.
             # Knowing the resistance, we can find the current (in mA):
             current = (s2/1024.*5.)/resistance * 1000
 
