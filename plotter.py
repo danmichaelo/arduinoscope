@@ -17,14 +17,18 @@ from threading import Thread
 matplotlib.use('WXAgg')
 #matplotlib.use('macosx')
 matplotlib.rcParams['toolbar'] = 'None'
-matplotlib.rcParams['figure.facecolor'] = 'black'
-matplotlib.rcParams['figure.edgecolor'] = 'black'
-matplotlib.rcParams['axes.labelcolor'] = 'green'
-matplotlib.rcParams['axes.facecolor'] = '0.15'
-matplotlib.rcParams['axes.edgecolor'] = '0.15'
-matplotlib.rcParams['axes.color_cycle'] = 'green'
-matplotlib.rcParams['xtick.color'] = 'green'
-matplotlib.rcParams['ytick.color'] = 'green'
+#matplotlib.rcParams['figure.facecolor'] = 'white'
+#matplotlib.rcParams['figure.edgecolor'] = 'white'
+#matplotlib.rcParams['axes.labelcolor'] = 'black'
+#matplotlib.rcParams['axes.facecolor'] = '0.15'
+#matplotlib.rcParams['axes.edgecolor'] = '0.15'
+matplotlib.rcParams['axes.color_cycle'] = 'red'
+#matplotlib.rcParams['xtick.color'] = 'blue'
+#matplotlib.rcParams['ytick.color'] = 'blue'
+matplotlib.rcParams['font.size'] = 24.0
+matplotlib.rcParams['axes.linewidth'] = 1.5
+matplotlib.rcParams['lines.linewidth'] = 1.5
+matplotlib.rcParams['axes.grid'] = True
 
 #axes.labelcololabelcolorr
 
@@ -32,9 +36,9 @@ import matplotlib.pyplot as plt
 
 fig = plt.figure()
 
-ax3 = fig.add_axes([ 0.10, 0.08, 0.88, 0.29 ])  # left, bottom, w, h
-ax2 = fig.add_axes([ 0.10, 0.38, 0.88, 0.29 ]) 
-ax1 = fig.add_axes([ 0.10, 0.68, 0.88, 0.29 ])
+ax3 = fig.add_axes([ 0.08, 0.08, 0.90, 0.29 ])  # left, bottom, w, h
+ax2 = fig.add_axes([ 0.08, 0.38, 0.90, 0.29 ]) 
+ax1 = fig.add_axes([ 0.08, 0.68, 0.90, 0.29 ])
 ax1.set_xticklabels([])
 ax2.set_xticklabels([])
 
@@ -44,16 +48,19 @@ x_interval = 300.   # number of seconds displayed
 pointlength = x_interval/points # length of each point in seconds
 
 #ax = fig.add_subplot(111)
-ax1.grid(True)
-ax2.grid(True)
-ax3.grid(True)
 ax3.set_xlabel("Time")
-ax1.set_ylabel(r'Voltage $V$ [V]')
-ax2.set_ylabel(r'Current $I$ [mA]')
-ax3.set_ylabel(r'Power $P$ [mW]')
+
+ax1.set_ylabel(r'Voltage [V]')
 ax1.axis([0,points, 0, 5])
-ax2.axis([0,points, 0, 100])
-ax3.axis([0,points, 0, 100])
+ax1.set_yticks(np.arange(0,5,1))
+
+ax2.set_ylabel(r'Current [mA]')
+ax2.axis([0,points, 0, 90])
+ax2.set_yticks(np.arange(0,80,20))
+
+ax3.set_ylabel(r'Power [mW]')
+ax3.axis([0,points, 0, 190])
+ax3.set_yticks(np.arange(0,180,40))
 
 x = np.arange(0, points, 1)
 datetime = np.zeros(points)
@@ -92,16 +99,15 @@ def update(*args):
                 dt = float(line[0]) - datetime[-1]
             npoints = int(floor(dt/pointlength))
             #print "dt: %.3f. pointlength: %.1f. Filling %d points" % (dt, pointlength, npoints)
-            if npoints < points:
-                for i in range(npoints):
-                    datetime[0:-1] = datetime[1:]
-                    datetime[-1] = float(line[0])
-                    voltage[0:-1] = voltage[1:]
-                    voltage[-1] = float(line[1])
-                    current[0:-1] = current[1:]
-                    current[-1] = float(line[2])
-                    power[0:-1] = power[1:]
-                    power[-1] = float(line[3])
+            for i in range(npoints):
+                datetime[0:-1] = datetime[1:]
+                datetime[-1] = float(line[0])
+                voltage[0:-1] = voltage[1:]
+                voltage[-1] = float(line[1])
+                current[0:-1] = current[1:]
+                current[-1] = float(line[2])
+                power[0:-1] = power[1:]
+                power[-1] = float(line[3])
 
     line_v.set_ydata(voltage)
     line_i.set_ydata(current)
